@@ -3,6 +3,7 @@ package com.example.demo.student.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
+import static com.example.demo.student.security.ApplicationUserPermission.*;
 import static com.example.demo.student.security.ApplicationUserRole.*;
 
 @Configuration
@@ -27,9 +29,14 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
                 //Basic auth
-                http.authorizeRequests()
+                http.csrf().disable()
+                .authorizeRequests()
                         .antMatchers("/","index","/css/*","/js/*").permitAll()
                         .antMatchers("/api/**").hasRole(STUDENT.name())
+                        .antMatchers(HttpMethod.POST,"/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
+                        .antMatchers(HttpMethod.PUT,"/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
+                        .antMatchers(HttpMethod.DELETE,"/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
+                        .antMatchers(HttpMethod.GET,"/management/api/**").hasAnyRole(ADMIN.name(),ADMINTRAINEE.name())
                         .anyRequest()
                         .authenticated()
                         .and()
@@ -41,16 +48,26 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
         protected UserDetailsService userDetailsService() {
                 UserDetails liliaUser = User.builder()
                                             .username("Lilia")
-                                            .password(passwordEncoder.encode("pass"))
-                                            .roles(STUDENT.name())
+                                            .password(passwordEncoder.encode("password123"))
+                                            //.roles(STUDENT.name())
+                                            .authorities(STUDENT.getGrantedAuthorities())
                                             .build();
+
                 UserDetails badrUser = User.builder()
-                        .username("Badr")
-                        .password(passwordEncoder.encode("KKKK"))
-                        .roles(ADMIN.name())
+                        .username("badr")
+                        .password(passwordEncoder.encode("password123"))
+                        //.roles(ADMIN.name())
+                        .authorities(ADMIN.getGrantedAuthorities())
                         .build();
 
-                return new InMemoryUserDetailsManager(liliaUser, badrUser);
+                UserDetails tomUser = User.builder()
+                        .username("tom")
+                        .password(passwordEncoder.encode("password123"))
+                        //.roles(ADMINTRAINEE.name())
+                        .authorities(ADMINTRAINEE.getGrantedAuthorities())
+                        .build();
+
+                return new InMemoryUserDetailsManager(liliaUser, badrUser,tomUser);
 
         }
 }
