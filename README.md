@@ -7,6 +7,4 @@ It is the de-facto standard for securing Spring-based applications.
 In this repo, you will find the auth type by branch, roles, permissions, jwt, csrf..., for reference purpose
 
 
-https://www.buymeacoffee.com/badrkacimi
-
 
